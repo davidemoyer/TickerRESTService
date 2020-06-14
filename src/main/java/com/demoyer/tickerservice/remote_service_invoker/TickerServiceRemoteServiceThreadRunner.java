@@ -6,9 +6,10 @@ import org.springframework.stereotype.Component;
 import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 //calls external api provider
 @Component
@@ -31,7 +32,8 @@ public class TickerServiceRemoteServiceThreadRunner {
                 //removes entry from list if ticker data does not exist
                 tickerDataProviderResponseList.removeIf(
                         tickerDataProviderResponse ->
-                                tickerDataProviderResponse.getData().getErrorMessage() != null);
+                                tickerDataProviderResponse.getData().getErrorMessage() != null ||
+                                        tickerDataProviderResponse.getData().getTickerInfoMap().isEmpty());
 
                 tickerDataProviderResponseList.add(future.get(3, TimeUnit.SECONDS));
             }
@@ -43,4 +45,10 @@ public class TickerServiceRemoteServiceThreadRunner {
         executorService.shutdown();
         return tickerDataProviderResponseList;
     }
+
+    public TickerDataProviderResponse getTickerData(URI tickerURI) {
+        RemoteServiceInvoker remoteServiceInvoker = new RemoteServiceInvoker();
+        return remoteServiceInvoker.getTickerDataProviderResponse(tickerURI);
+    }
+
 }

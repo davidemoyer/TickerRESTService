@@ -31,10 +31,18 @@ public class TickerServiceClient {
         List<URI> tickerURIList = new ArrayList<>();
 
         for (String ticker : tickerList) {
-            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(alphaVantageRestServiceInfo.getUrl() + ticker + "&interval=5min&apikey=" + alphaVantageRestServiceInfo.getApiKey());
-            tickerURIList.add(uriComponentsBuilder.build().toUri());
+            tickerURIList.add(createAPIURI(ticker));
         }
 
         return tickerServiceRemoteServiceThreadRunner.getTickerData(tickerURIList);
+    }
+
+    public TickerDataProviderResponse getTickerData(String ticker) {
+        return tickerServiceRemoteServiceThreadRunner.getTickerData(createAPIURI(ticker));
+    }
+
+    private URI createAPIURI(String ticker) {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(alphaVantageRestServiceInfo.getUrl() + ticker + "&interval=5min&apikey=" + alphaVantageRestServiceInfo.getApiKey());
+        return uriComponentsBuilder.build().toUri();
     }
 }

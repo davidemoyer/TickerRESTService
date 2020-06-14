@@ -1,6 +1,8 @@
 spring:
   jackson:
     default-property-inclusion: non_null
+server:
+  port: 5000
 alpha-vantage:
   url: https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&outputsize=full&symbol=
   apiKey:

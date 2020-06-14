@@ -6,12 +6,14 @@ import com.demoyer.tickerservice.model.TickerDataProviderResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static com.demoyer.tickerservice.common.Constant.*;
+import static com.demoyer.tickerservice.common.Constant.OPERATION_STATUS_EXECUTOR_ERROR_CODE;
+import static com.demoyer.tickerservice.common.Constant.OPERATION_STATUS_FAILURE_CODE;
 
 //performs any operations on data
 @Component
@@ -30,15 +32,25 @@ public class TickerServiceDelegate {
 
     public Response<?> getTickerDataCSV(List<String> tickerList) {
         List<TickerDataProviderResponse> tickerDataProviderResponseList = tickerServiceClient.getTickerData(tickerList);
-
         ExecutorService executorService = Executors.newFixedThreadPool(10);
 
         tickerDataProviderResponseList.forEach((tickerDataProviderResponse) -> {
-            if(!tickerDataProviderResponse.getData().getTickerInfoMap().isEmpty())
-                executorService.execute(new CSVRunnable(tickerDataProviderResponse));
+            if (!tickerDataProviderResponse.getData().getTickerInfoMap().isEmpty())
+                executorService.execute(new CSVLocalFileRunnable(tickerDataProviderResponse));
         });
 
-        return shutdownExecutorService(executorService);
+        if (!shutdownExecutorService(executorService)) {
+            return createErrorResponse();
+        }
+        return new Response<>();
+    }
+
+    public void downloadTickerDataCSV(List<String> tickerList, HttpServletResponse httpServletResponse) {
+        List<TickerDataProviderResponse> tickerDataProviderResponseList = tickerServiceClient.getTickerData(tickerList);
+
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.execute(new CSVDownloadFileRunnable(tickerDataProviderResponseList.get(0), httpServletResponse));
+        shutdownExecutorService(executorService);
     }
 
     private Response<?> createErrorResponse() {
@@ -48,14 +60,13 @@ public class TickerServiceDelegate {
         return response;
     }
 
-    private Response<?> shutdownExecutorService(ExecutorService executorService) {
+    private boolean shutdownExecutorService(ExecutorService executorService) {
         executorService.shutdown();
         try {
             executorService.awaitTermination(20, TimeUnit.SECONDS);
-            return new Response<>();
         } catch (InterruptedException e) {
             System.out.println(e.getLocalizedMessage());
         }
-        return createErrorResponse();
+        return executorService.isShutdown();
     }
 }

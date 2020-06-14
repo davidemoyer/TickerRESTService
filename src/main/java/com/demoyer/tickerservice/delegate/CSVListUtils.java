@@ -1,49 +1,13 @@
 package com.demoyer.tickerservice.delegate;
 
 import com.demoyer.tickerservice.model.TickerDataProviderResponse;
-import com.opencsv.CSVWriter;
 
-import java.io.FileWriter;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.demoyer.tickerservice.common.Constant.OUTPUT_DIRECTORY;
+public class CSVListUtils {
 
-public class CSVRunnable implements Runnable {
-
-    TickerDataProviderResponse tickerDataProviderResponse;
-
-    CSVRunnable(TickerDataProviderResponse tickerDataProviderResponse) {
-        this.tickerDataProviderResponse = tickerDataProviderResponse;
-    }
-
-    @Override
-    public void run() {
-        try {
-            CSVWriter csvWriter = new CSVWriter(
-                    new FileWriter(
-                            OUTPUT_DIRECTORY
-                                    + tickerDataProviderResponse
-                                    .getData()
-                                    .getMetaData()
-                                    .get("2. Symbol")
-                                    + "DailyAdjusted"
-                                    + tickerDataProviderResponse
-                                    .getData()
-                                    .getMetaData()
-                                    .get("3. Last Refreshed")
-                                    + ".csv"));
-
-            csvWriter.writeAll(createCSVLineList());
-            csvWriter.flush();
-            csvWriter.close();
-
-        } catch (Exception ex) {
-            System.out.println(ex.getLocalizedMessage());
-        }
-    }
-
-    private List<String[]> createCSVLineList() {
+    public List<String[]> createCSVLineList(TickerDataProviderResponse tickerDataProviderResponse) {
         LinkedList<String[]> csvLineList = new LinkedList<>();
         csvLineList.add(new String[]{"open", "high", "low", "adjustedClose", "volume", "shouldSell"});
 
@@ -66,10 +30,32 @@ public class CSVRunnable implements Runnable {
         return csvLineList;
     }
 
+    public String buildCSVString(TickerDataProviderResponse tickerDataProviderResponse) {
+        StringBuilder stringBuilder = new StringBuilder();
+        createCSVLineList(tickerDataProviderResponse).forEach(strings -> {
+            stringBuilder.append(String.join(",", strings));
+            stringBuilder.append("\n");
+        });
+        return stringBuilder.toString();
+    }
+
+    public String buildCSVFileName(TickerDataProviderResponse tickerDataProviderResponse) {
+        return tickerDataProviderResponse
+                .getData()
+                .getMetaData()
+                .get("2. Symbol")
+                + "DailyAdjusted"
+                + tickerDataProviderResponse
+                .getData()
+                .getMetaData()
+                .get("3. Last Refreshed")
+                + ".csv";
+    }
+
     /*  i = 1 to ignore the first row since it's the labels
-     for each row to be added after that get the average value between the high and low
-     if it's lower than the next day then set "shouldBuy" to 1 otherwise it will be 0
-    */
+ for each row to be added after that get the average value between the high and low
+ if it's lower than the next day then set "shouldBuy" to 1 otherwise it will be 0
+*/
     private void setAveragePriceOutputLabel(LinkedList<String[]> csvLineList) {
         for (int i = 1; i <= csvLineList.size() - 2; i++) {
             if ((Double.parseDouble(csvLineList.get(i)[1]) + Double.parseDouble(csvLineList.get(i)[2])) / 2
