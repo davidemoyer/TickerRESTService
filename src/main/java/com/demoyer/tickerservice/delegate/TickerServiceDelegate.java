@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 
 @Component
@@ -33,5 +34,10 @@ public class TickerServiceDelegate {
                 executorService.execute(new CSVRunnable(tickerDataProviderResponse)));
 
         executorService.shutdown();
+        try {
+            executorService.awaitTermination(20, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            System.out.println(e.getLocalizedMessage());
+        }
     }
 }
