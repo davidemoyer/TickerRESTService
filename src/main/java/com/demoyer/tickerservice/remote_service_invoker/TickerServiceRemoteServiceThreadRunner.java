@@ -30,10 +30,7 @@ public class TickerServiceRemoteServiceThreadRunner {
         try {
             for (Future<TickerDataProviderResponse> future : futureTickerDataResponseList) {
                 //removes entry from list if ticker data does not exist
-                tickerDataProviderResponseList.removeIf(
-                        tickerDataProviderResponse ->
-                                tickerDataProviderResponse.getData().getErrorMessage() != null ||
-                                        tickerDataProviderResponse.getData().getTickerInfoMap().isEmpty());
+                tickerDataProviderResponseList.removeIf(this::isErrorResponse);
 
                 tickerDataProviderResponseList.add(future.get(3, TimeUnit.SECONDS));
             }
@@ -48,7 +45,17 @@ public class TickerServiceRemoteServiceThreadRunner {
 
     public TickerDataProviderResponse getTickerData(URI tickerURI) {
         RemoteServiceInvoker remoteServiceInvoker = new RemoteServiceInvoker();
-        return remoteServiceInvoker.getTickerDataProviderResponse(tickerURI);
+        TickerDataProviderResponse tickerDataProviderResponse = remoteServiceInvoker.getTickerDataProviderResponse(tickerURI);
+
+        if(isErrorResponse(tickerDataProviderResponse)) {
+            return remoteServiceInvoker.createErrorResponse();
+        }
+        return tickerDataProviderResponse;
+    }
+
+    private boolean isErrorResponse(TickerDataProviderResponse tickerDataProviderResponse) {
+        return tickerDataProviderResponse.getData().getErrorMessage() != null ||
+                tickerDataProviderResponse.getData().getTickerInfoMap().isEmpty();
     }
 
 }

@@ -36,8 +36,6 @@ public class TickerServiceController {
     @GetMapping("/downloadTickerInfoCSV")
     public void downloadTickerInfoCSV(@RequestParam("ticker") String ticker,
                                       HttpServletResponse httpServletResponse) {
-        List<String> tickerList = new LinkedList<>();
-        tickerList.add(ticker);
-        tickerServiceJSONResponseBuilder.downloadTickerDataCSV(tickerList, httpServletResponse);
+        tickerServiceJSONResponseBuilder.downloadTickerDataCSV(ticker, httpServletResponse);
     }
 }

@@ -25,7 +25,7 @@ public class RemoteServiceInvoker {
         return tickerDataProviderResponse;
     }
 
-    private TickerDataProviderResponse createErrorResponse() {
+    protected TickerDataProviderResponse createErrorResponse() {
         TickerDataProviderResponse tickerDataProviderResponse = new TickerDataProviderResponse();
         tickerDataProviderResponse.getOperationStatus().setStatusCode("1");
         tickerDataProviderResponse.getOperationStatus().setStatusMessage("Bad http response from exchange");

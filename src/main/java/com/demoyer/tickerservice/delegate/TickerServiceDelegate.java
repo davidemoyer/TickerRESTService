@@ -3,17 +3,20 @@ package com.demoyer.tickerservice.delegate;
 import com.demoyer.tickerservice.client.TickerServiceClient;
 import com.demoyer.tickerservice.model.Response;
 import com.demoyer.tickerservice.model.TickerDataProviderResponse;
+import com.demoyer.tickerservice.response_builder.HTTPOutputResponseBuilder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static com.demoyer.tickerservice.common.Constant.OPERATION_STATUS_EXECUTOR_ERROR_CODE;
-import static com.demoyer.tickerservice.common.Constant.OPERATION_STATUS_FAILURE_CODE;
+import static com.demoyer.tickerservice.common.Constant.*;
 
 //performs any operations on data
 @Component
@@ -35,8 +38,12 @@ public class TickerServiceDelegate {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
 
         tickerDataProviderResponseList.forEach((tickerDataProviderResponse) -> {
-            if (!tickerDataProviderResponse.getData().getTickerInfoMap().isEmpty())
+            if (!tickerDataProviderResponse
+                    .getData()
+                    .getTickerInfoMap()
+                    .isEmpty()) {
                 executorService.execute(new CSVLocalFileRunnable(tickerDataProviderResponse));
+            }
         });
 
         if (!shutdownExecutorService(executorService)) {
@@ -45,18 +52,33 @@ public class TickerServiceDelegate {
         return new Response<>();
     }
 
-    public void downloadTickerDataCSV(List<String> tickerList, HttpServletResponse httpServletResponse) {
-        List<TickerDataProviderResponse> tickerDataProviderResponseList = tickerServiceClient.getTickerData(tickerList);
+    public void downloadTickerDataCSV(String ticker, HttpServletResponse httpServletResponse) {
+        TickerDataProviderResponse tickerDataProviderResponse = tickerServiceClient.getTickerData(ticker);
 
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new CSVDownloadFileRunnable(tickerDataProviderResponseList.get(0), httpServletResponse));
-        shutdownExecutorService(executorService);
+        HTTPOutputResponseBuilder httpOutputResponseBuilder = new HTTPOutputResponseBuilder();
+
+        try {
+            if (tickerDataProviderResponse
+                    .getOperationStatus()
+                    .getStatusCode()
+                    .equalsIgnoreCase(OPERATION_STATUS_SUCCESSFUL_CODE)) {
+                httpOutputResponseBuilder.createCSVStringFileOutputStream(tickerDataProviderResponse, httpServletResponse);
+            } else {
+                printObject(tickerDataProviderResponse);
+            }
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
     }
 
     private Response<?> createErrorResponse() {
         Response<?> response = new Response<>();
-        response.getOperationStatus().setStatusCode(OPERATION_STATUS_FAILURE_CODE);
-        response.getOperationStatus().setStatusMessage(OPERATION_STATUS_EXECUTOR_ERROR_CODE);
+
+        response.getOperationStatus()
+                .setStatusCode(OPERATION_STATUS_FAILURE_CODE);
+
+        response.getOperationStatus()
+                .setStatusMessage(OPERATION_STATUS_EXECUTOR_ERROR_CODE);
         return response;
     }
 
@@ -68,5 +90,14 @@ public class TickerServiceDelegate {
             System.out.println(e.getLocalizedMessage());
         }
         return executorService.isShutdown();
+    }
+
+    private void printObject(Object object) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(object);
+        } catch (JsonProcessingException jsonProcessingException) {
+            jsonProcessingException.printStackTrace();
+        }
     }
 }

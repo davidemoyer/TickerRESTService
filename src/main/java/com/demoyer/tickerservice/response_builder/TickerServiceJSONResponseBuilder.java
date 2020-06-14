@@ -28,7 +28,7 @@ public class TickerServiceJSONResponseBuilder {
         return new ResponseEntity<>(tickerServiceDelegate.getTickerDataCSV(tickerList), HttpStatus.OK);
     }
 
-    public void downloadTickerDataCSV(List<String> tickerList, HttpServletResponse httpServletResponse) {
-        tickerServiceDelegate.downloadTickerDataCSV(tickerList, httpServletResponse);
+    public void downloadTickerDataCSV(String ticker, HttpServletResponse httpServletResponse) {
+        tickerServiceDelegate.downloadTickerDataCSV(ticker, httpServletResponse);
     }
 }

@@ -4,6 +4,7 @@ public class Constant {
 
 
     //Operation Status Constants
+    public static final String OPERATION_STATUS_SUCCESSFUL_CODE = "0";
     public static final String OPERATION_STATUS_FAILURE_CODE = "1";
     public static final String OPERATION_STATUS_EXECUTOR_ERROR_CODE = "An error has occurred";
 
