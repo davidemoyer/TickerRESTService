@@ -1,0 +1,6 @@
+spring:
+  jackson:
+    default-property-inclusion: non_null
+alpha-vantage:
+  url: https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&outputsize=full&symbol=
+  apiKey:
