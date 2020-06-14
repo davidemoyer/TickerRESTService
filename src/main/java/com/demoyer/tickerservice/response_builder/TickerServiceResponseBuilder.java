@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+//wraps response in a response entity and returns, could read operationStatus in future and set custom httpStatus codes if error occurred
 @Component
 public class TickerServiceResponseBuilder {
 
@@ -22,8 +23,7 @@ public class TickerServiceResponseBuilder {
         return new ResponseEntity<>(tickerServiceDelegate.getTickerDataJSON(tickerList), HttpStatus.OK);
     }
 
-    //generate csv files from data
-    public void getTickerInfoCSV(List<String> tickerList) {
-        tickerServiceDelegate.getTickerDataCSV(tickerList);
+    public ResponseEntity<?> getTickerInfoCSV(List<String> tickerList) {
+        return new ResponseEntity<>(tickerServiceDelegate.getTickerDataCSV(tickerList), HttpStatus.OK);
     }
 }

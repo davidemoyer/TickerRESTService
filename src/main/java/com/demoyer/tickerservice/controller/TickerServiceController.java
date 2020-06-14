@@ -26,7 +26,7 @@ public class TickerServiceController {
 
     //will create csv files at C://CSVOutput
     @GetMapping("/getTickerInfoCSV")
-    public void getTickerInfoCSV(@RequestParam("ticker") List<String> tickerList) {
-        tickerServiceResponseBuilder.getTickerInfoCSV(tickerList);
+    public ResponseEntity<?> getTickerInfoCSV(@RequestParam("ticker") List<String> tickerList) {
+        return tickerServiceResponseBuilder.getTickerInfoCSV(tickerList);
     }
 }

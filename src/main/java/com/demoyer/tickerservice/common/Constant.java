@@ -4,11 +4,9 @@ public class Constant {
 
 
     //Operation Status Constants
-    public static final String OPERATION_STATUS_SUCCESS_CODE = "0";
-    public static final String OPERATION_STATUS_SUCCESS_MESSAGE = "Operation Status Success";
+    public static final String OPERATION_STATUS_FAILURE_CODE = "1";
+    public static final String OPERATION_STATUS_EXECUTOR_ERROR_CODE = "An error has occurred";
+
+    //Output path for csv files
     public static final String OUTPUT_DIRECTORY = "C://CSVOutput/";
-
-    //Header Values
-    public static final String TRANSIT_ID = "TransitId";
-
 }

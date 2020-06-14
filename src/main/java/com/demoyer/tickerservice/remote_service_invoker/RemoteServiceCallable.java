@@ -24,16 +24,21 @@ public class RemoteServiceCallable implements Callable<TickerDataProviderRespons
         RestTemplate restTemplate = new RestTemplate();
 
         try {
-            System.out.println(Thread.currentThread().getName() + Thread.currentThread().getId());
             tickerData = restTemplate.getForEntity(uri, TickerData.class).getBody();
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            tickerDataProviderResponse.getOperationStatus().setStatusCode("1");
-            tickerDataProviderResponse.getOperationStatus().setStatusMessage("Bad http response from exchange");
-            tickerDataProviderResponse.setData(null);
-            return tickerDataProviderResponse;
+            return createErrorResponse();
         }
         tickerDataProviderResponse.setData(tickerData);
 
         return tickerDataProviderResponse;
     }
+
+    private TickerDataProviderResponse createErrorResponse() {
+        TickerDataProviderResponse tickerDataProviderResponse = new TickerDataProviderResponse();
+        tickerDataProviderResponse.getOperationStatus().setStatusCode("1");
+        tickerDataProviderResponse.getOperationStatus().setStatusMessage("Bad http response from exchange");
+        tickerDataProviderResponse.setData(null);
+        return tickerDataProviderResponse;
+    }
+
 }

@@ -10,6 +10,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.*;
 
+//calls external api provider
 @Component
 public class TickerServiceRemoteServiceThreadRunner {
 
@@ -27,6 +28,7 @@ public class TickerServiceRemoteServiceThreadRunner {
 
         try {
             for (Future<TickerDataProviderResponse> future : futureTickerDataResponseList) {
+                //removes entry from list if ticker data does not exist
                 tickerDataProviderResponseList.removeIf(
                         tickerDataProviderResponse ->
                                 tickerDataProviderResponse.getData().getErrorMessage() != null);
@@ -36,6 +38,8 @@ public class TickerServiceRemoteServiceThreadRunner {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        //only need shutdown function due to future.get() blocking until threads are complete
         executorService.shutdown();
         return tickerDataProviderResponseList;
     }
